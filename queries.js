@@ -23,7 +23,7 @@ const getFilials = (request, response) => {
 const getBankUserById = (request, response) => {
     const id_user = parseInt(request.params.id_user)
 
-    pool.query('select id_user, surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and id_user = $1;', [id_user], (error, results) => {
+    pool.query('select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and id_user = $1;', [id_user], (error, results) => {
         if (error) {
             throw error
         }
