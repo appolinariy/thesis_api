@@ -26,7 +26,8 @@ app.get('/', (request, response) => {
 
 //get response from queries
 app.get('/filials',db.getFilials)
-app.get('/bankuser/:id_user', db.getBankUserById)
+app.get('/bankuser/:login', db.getBankUserById)
+app.get('/filialbankuser/:login', db.getBankUserFromFilial)
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)
