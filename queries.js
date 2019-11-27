@@ -23,7 +23,6 @@ const getFilials = (request, response) => {
 const getBankUserById = (request, response) => {
     const login = request.params.login
     //ecли int то parseInt(request.params.id)
-
     pool.query('select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and login = $1;', [login], (error, results) => {
         if (error) {
             throw error
@@ -48,11 +47,14 @@ const getAllBankUser = (request, response) => {
 const createBankUser = (request, response) => {
     const { surname, name, father_name, position, login, password, id_filial, system_role } = request.body
 
+    console.log(request.body);
+    //(select id_filial from ... where address = $7) in values(...)
     pool.query('insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id_user', [surname, name, father_name, position, login, password, id_filial, system_role], (error, results) => {
         if (error) {
-            throw error
+            response.status(500).send({message: 'Something went wrong'});
+            console.log(error)
         }
-        response.status(201).send(`User added with ID: ${results.rows[0].id_user}`)
+        response.status(201).send({message: `User added with ID: ${results.rows[0].id_user}`, id_user: results.rows[0].id_user})
     })
 }
 //check in terminal: curl -d "surname=Абрамова&name=Полина&father_name=Глебовна&position=Заместитель&login=abram_pol&password=pol12345&id_filial=2&system_role=Юрист" http://localhost:3000/allbankusers
@@ -62,5 +64,5 @@ module.exports = {
     getFilials,
     getBankUserById,
     getAllBankUser,
-    createBankUser,
+    createBankUser
 }
