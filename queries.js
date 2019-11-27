@@ -32,11 +32,9 @@ const getBankUserById = (request, response) => {
     })
 }
 
-//GET a bank_users from the one filial
-const getBankUserFromFilial = (request, response) => {
-    const login = request.params.login
-
-    pool.query('select surname, name, father_name, position, login, system_role from bank_user where id_filial = (select id_filial from bank_user where login = $1);', [login], (error, results) => {
+//GET a bank_users
+const getAllBankUser = (request, response) => {
+    pool.query('select * from bank_user order by id_user ASC;', (error, results) => {
         if (error) {
             throw error
         }
@@ -44,9 +42,25 @@ const getBankUserFromFilial = (request, response) => {
     })
 }
 
+//var message = iconv.encode(iconv.decode(name, "utf8"), "cp1251").toString();
+
+//POST a new Bank User
+const createBankUser = (request, response) => {
+    const { surname, name, father_name, position, login, password, id_filial, system_role } = request.body
+
+    pool.query('insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id_user', [surname, name, father_name, position, login, password, id_filial, system_role], (error, results) => {
+        if (error) {
+            throw error
+        }
+        response.status(201).send(`User added with ID: ${results.rows[0].id_user}`)
+    })
+}
+//check in terminal: curl -d "surname=Абрамова&name=Полина&father_name=Глебовна&position=Заместитель&login=abram_pol&password=pol12345&id_filial=2&system_role=Юрист" http://localhost:3000/allbankusers
+
 //export - to access these functions from index.js
 module.exports = {
     getFilials,
     getBankUserById,
-    getBankUserFromFilial,
+    getAllBankUser,
+    createBankUser,
 }
