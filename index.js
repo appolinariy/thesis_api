@@ -24,8 +24,9 @@ app.get('/', (request, response) => {
     response.json({ info: 'Node.js, Express, and Postgres API' })
 })
 
+app.post('/auth', db.authorization)
 app.get('/filials',db.getFilials)
-app.get('/bankuser/:login', db.getBankUserById)
+app.get('/bankuser/:login', db.getBankUserByLogin)
 app.get('/allbankusers', db.getAllBankUser)
 app.post('/allbankusers', db.createBankUser)
 app.delete('/allbankusers/:id_user', db.deleteBankUser)

@@ -8,7 +8,24 @@ const pool = new Pool({
     port: 5432,
 })
 
-//GET all filials by id
+//POST bank_user by login and password - Authorization
+const authorization = async(request, response) => {
+    const { login, password } = request.body
+    try{
+        let results = await pool.query('select password, id_user, system_role from bank_user where login = $1', [login]);
+        if(!results.rows.length) {
+            response.status(400).send({message: 'No such user', status: false})
+        }
+        if(results.rows[0].password !== password) {
+            response.status(401).send({message: "Incorrect password", status: false})
+        }
+        response.status(200).send({message: 'Success', status: true, id_user: results.rows[0].id_user, system_role: results.rows[0].system_role})
+    } catch(err) {
+        response.status(500).send({message: 'Something went wrong', status: false})
+    }
+} 
+
+//GET all filials by id - Fillials
 const getFilials = (request, response) => {
     pool.query('select * from filial order by id_filial ASC', (error, results) => {
         if(error) {
@@ -18,8 +35,9 @@ const getFilials = (request, response) => {
     })
 }
 
+// Administration
 //GET a single bank_user by login
-const getBankUserById = (request, response) => {
+const getBankUserByLogin = (request, response) => {
     const login = request.params.login
     pool.query('select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and login = $1;', [login], (error, results) => {
         if (error) {
@@ -45,7 +63,6 @@ const createBankUser = (request, response) => {
     //(select id_filial from ... where address = $7) in values(...)
     pool.query('insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id_user', [surname, name, father_name, position, login, password, id_filial, system_role], (error, results) => {
         if (error) {
-            response.status(400).send({message: 'Empty fields', status: false});
             response.status(500).send({message: 'Something went wrong', status: false});
         }
         response.status(201).send({message: `User added with ID: ${results.rows[0].id_user}`, id_user: results.rows[0].id_user, status: true})
@@ -86,8 +103,9 @@ const updateBankUser = (request, response) => {
 
 //export - to access these functions from index.js
 module.exports = {
+    authorization,
     getFilials,
-    getBankUserById,
+    getBankUserByLogin,
     getAllBankUser,
     createBankUser,
     deleteBankUser,
