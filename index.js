@@ -26,7 +26,7 @@ app.get('/', (request, response) => {
 
 app.post('/auth', db.authorization)
 app.get('/filials',db.getFilials)
-app.get('/bankuser/:login', db.getBankUserByLogin)
+app.get('/bankuser/:id_user', db.getBankUserById)
 app.get('/allbankusers', db.getAllBankUser)
 app.post('/allbankusers', db.createBankUser)
 app.delete('/allbankusers/:id_user', db.deleteBankUser)

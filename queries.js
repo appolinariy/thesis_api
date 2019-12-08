@@ -14,11 +14,13 @@ const authorization = async(request, response) => {
     try{
         let results = await pool.query('select password, id_user, system_role from bank_user where login = $1', [login]);
         if(!results.rows.length) {
+            console.log('Empty RESULTS')
             response.status(400).send({message: 'No such user', status: false})
         }
         if(results.rows[0].password !== password) {
             response.status(401).send({message: "Incorrect password", status: false})
         }
+        console.log('RESULT is ok')
         response.status(200).send({message: 'Success', status: true, id_user: results.rows[0].id_user, system_role: results.rows[0].system_role})
     } catch(err) {
         response.status(500).send({message: 'Something went wrong', status: false})
@@ -36,10 +38,10 @@ const getFilials = (request, response) => {
 }
 
 // Administration
-//GET a single bank_user by login
-const getBankUserByLogin = (request, response) => {
-    const login = request.params.login
-    pool.query('select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and login = $1;', [login], (error, results) => {
+//GET a single bank_user by id
+const getBankUserById = (request, response) => {
+    const id_user = request.params.id_user
+    pool.query('select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and id_user = $1;', [id_user], (error, results) => {
         if (error) {
             response.status(500).send({message: 'Something went wrong', status: false});
         }
@@ -105,7 +107,7 @@ const updateBankUser = (request, response) => {
 module.exports = {
     authorization,
     getFilials,
-    getBankUserByLogin,
+    getBankUserById,
     getAllBankUser,
     createBankUser,
     deleteBankUser,
