@@ -10,22 +10,23 @@ app.use(
         extended: true
     })
 )
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
     res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
     );
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
     next();
-  });
+});
 
 app.get('/', (request, response) => {
     response.json({ info: 'Node.js, Express, and Postgres API' })
 })
 
 app.post('/auth', db.authorization)
-app.get('/filials',db.getFilials)
+app.get('/filials', db.getFilials)
+app.get('/allclients', db.getAllClients)
 app.get('/bankuser/:id_user', db.getBankUserById)
 app.get('/allbankusers', db.getAllBankUser)
 app.post('/allbankusers', db.createBankUser)
