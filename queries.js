@@ -50,7 +50,6 @@ const getAllClients = (request, response) => {
             row.birthday = row.birthday.toLocaleDateString();
             row.exp_passport_date = row.exp_passport_date.toLocaleDateString();
         })
-        console.log('get clients', results.rows);
         response.status(200).send({ data: results.rows, status: true })
     })
 }
