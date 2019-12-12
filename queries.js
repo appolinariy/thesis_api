@@ -46,6 +46,11 @@ const getAllClients = (request, response) => {
         if (error) {
             response.status(500).send({ message: 'Something went wrong', status: false });
         }
+        results.rows.map(row => {
+            row.birthday = row.birthday.toLocaleDateString();
+            row.exp_passport_date = row.exp_passport_date.toLocaleDateString();
+        })
+        console.log('get clients', results.rows);
         response.status(200).send({ data: results.rows, status: true })
     })
 }
@@ -53,7 +58,7 @@ const getAllClients = (request, response) => {
 //POST a new Client
 const createClient = (request, response) => {
     const { surname, name, father_name, birthday, mail, phone_number, address, passport_number, exp_passport_date, passport_by } = request.body
-    pool.query('insert into client (surname, name, father_name, mail, phone_number, address, passport_number, exp_passport_date, passport_by, birthday) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) returning id_client',
+    pool.query('insert into client (surname, name, father_name, birthday, mail, phone_number, address, passport_number, exp_passport_date, passport_by) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) returning id_client',
         [surname, name, father_name, birthday, mail, phone_number, address, passport_number, exp_passport_date, passport_by],
         (error, results) => {
             if (error) {
