@@ -40,6 +40,8 @@ app.post('/allbankusers', db.createBankUser)
 app.delete('/allbankusers/:id_user', db.deleteBankUser)
 app.put('/allbankusers/:id_user', db.updateBankUser)
 
+app.get('/findbankuser/:surname', db.findBankUser);
+
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)
 })

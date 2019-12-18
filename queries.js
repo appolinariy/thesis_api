@@ -112,20 +112,23 @@ const getBankUserById = (request, response) => {
 }
 
 //GET bank_users
-const getAllBankUser = (request, response) => {
-    pool.query('select * from bank_user order by id_user ASC;', (error, results) => {
-        if (error) {
-            response.status(500).send({ message: 'Something went wrong', status: false });
-        }
-        response.status(200).send({ data: results.rows, status: true })
-    })
+const getAllBankUser = async (request, response) => {
+    try {
+        let results = await pool.query('select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial order by bank_user.id_user ASC')
+        let filials = await pool.query('select address, id_filial from filial');
+        response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
+    } catch (err) {
+        response.status(500).send({ message: 'Something went wrong', status: false });
+        console.log(err);
+    }
 }
 
 //POST a new Bank User - доделать
 const createBankUser = (request, response) => {
-    const { surname, name, father_name, position, login, password, id_filial, system_role } = request.body
-    //(select id_filial from ... where address = $7) in values(...)
-    pool.query('insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id_user', [surname, name, father_name, position, login, password, id_filial, system_role], (error, results) => {
+    console.log('createBankUser', request.body, request.params);
+    const { surname, name, father_name, position, login, password, address, system_role } = request.body
+    pool.query('insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, (select id_filial from filial where address = $7), $8) returning id_user', [surname, name, father_name, position, login, password, address, system_role], (error, results) => {
+        console.log('results', results.rows)
         if (error) {
             response.status(500).send({ message: 'Something went wrong', status: false });
         }
@@ -165,6 +168,19 @@ const updateBankUser = (request, response) => {
     }
 }
 
+const findBankUser = async (request, response) => {
+    const { surname } = request.params
+    console.log('findBankUser', request.params)
+    try {
+        let results = await pool.query(`select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`)
+        let filials = await pool.query('select address, id_filial from filial');
+        console.log('results', results.rows)
+        response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
+    } catch (err) {
+        response.status(500).send({ message: 'Something went wrong', status: false });
+    }
+}
+
 //export - to access these functions from index.js
 module.exports = {
     authorization,
@@ -177,5 +193,6 @@ module.exports = {
     getAllBankUser,
     createBankUser,
     deleteBankUser,
-    updateBankUser
+    updateBankUser,
+    findBankUser
 }
