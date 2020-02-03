@@ -1,8 +1,9 @@
-const express = require('express')
-const bodyParser = require('body-parser')
-const app = express()
-const db = require('./queries')
-const port = 3000
+const express = require('express');
+const bodyParser = require('body-parser');
+const app = express();
+const port = process.env.PORT || 3001;
+
+const queries = require('./queries');
 
 app.use(bodyParser.json())
 app.use(
@@ -11,7 +12,7 @@ app.use(
     })
 )
 app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Origin", "*");// update to match the domain you will make the request from
     res.header(
         "Access-Control-Allow-Headers",
         "Origin, X-Requested-With, Content-Type, Accept, Authorization"
@@ -25,23 +26,26 @@ app.get('/', (request, response) => {
 })
 
 //Auth
-app.post('/auth', db.authorization)
-//Filial
-app.get('/filials', db.getFilials)
-//Borrower
-app.get('/allclients', db.getAllClients)
-app.post('/allclients', db.createClient)
-app.put('/allclients/:id_client', db.updateClient)
-app.delete('/allclients/:id_client', db.deleteClient)
-//Administration
-app.get('/bankuser/:id_user', db.getBankUserById)
-app.get('/allbankusers', db.getAllBankUser)
-app.post('/allbankusers', db.createBankUser)
-app.delete('/allbankusers/:id_user', db.deleteBankUser)
-app.put('/allbankusers/:id_user', db.updateBankUser)
+app.post('/auth', queries.authorization);
 
-app.get('/findbankuser/:surname', db.findBankUser);
+//Filial
+app.get('/filials', queries.getFilials);
+
+//Client
+app.get('/allclients', queries.getAllClients);
+app.post('/allclients', queries.createClient);
+app.put('/allclients/:id_client', queries.updateClient);
+app.delete('/allclients/:id_client', queries.deleteClient);
+// app.get('/findclient/:surname', queries.findClient);
+
+//Administration
+app.get('/bankuser/:id_user', queries.getBankUserById);
+app.get('/allbankusers', queries.getAllBankUser);
+app.post('/allbankusers', queries.createBankUser);
+app.delete('/allbankusers/:id_user', queries.deleteBankUser);
+app.put('/allbankusers/:id_user', queries.updateBankUser);
+app.get('/findbankuser/:surname', queries.findBankUser);
 
 app.listen(port, () => {
     console.log(`App running on port ${port}.`)
-})
+});
