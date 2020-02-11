@@ -73,7 +73,7 @@ const updateBankUser = (request, response) => {
 //search data in the Bank User
 const findBankUser = async (request, response) => {
     const { surname } = request.params
-    // console.log('findBankUser', request.params)
+    console.log('findBankUser', request.params)
     try {
         let results = await pool.query(`select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`)
         let filials = await pool.query('select address, id_filial from filial');
