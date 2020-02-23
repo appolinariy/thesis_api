@@ -61,17 +61,19 @@ const deleteClient = (request, response) => {
     })
 }
 
-//search a client - положить в экспорт еще
-// const findClient = async (request, response) => {
-//     const { surname } = request.params
-//     console.log('findClient', request.params)
-//     try {
-//         let results = await pool.query(`select client.* from client where client.surname like '%${surname}%' order by client.id_client ASC`)
-//         console.log('results SearchClient', results.rows)
-//         response.status(200).send({ data: results.rows, status: true });
-//     } catch (err) {
-//         response.status(500).send({ message: 'Something went wrong', status: false });
-//     }
-// }
+// search a client - положить в экспорт еще
+const findClient = async (request, response) => {
+    const { surname } = request.params
+    try {
+        let results = await pool.query(`select client.* from client where client.surname like '%${surname}%' order by client.id_client ASC`)
+        results.rows.map(row => {
+            row.birthday = row.birthday.toLocaleDateString();
+            row.exp_passport_date = row.exp_passport_date.toLocaleDateString();
+        })
+        response.status(200).send({ data: results.rows, status: true });
+    } catch (err) {
+        response.status(500).send({ message: 'Something went wrong', status: false });
+    }
+}
 
-module.exports = { getAllClients, createClient, updateClient, deleteClient };
+module.exports = { getAllClients, createClient, updateClient, deleteClient, findClient };

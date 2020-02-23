@@ -36,7 +36,7 @@ app.get('/allclients', queries.getAllClients);
 app.post('/allclients', queries.createClient);
 app.put('/allclients/:id_client', queries.updateClient);
 app.delete('/allclients/:id_client', queries.deleteClient);
-// app.get('/findclient/:surname', queries.findClient);
+app.get('/findclients/:surname', queries.findClient);
 
 //Administration
 app.get('/bankuser/:id_user', queries.getBankUserById);
