@@ -48,13 +48,11 @@ const createClient = (request, response) => {
       if (error) {
         response.status(500).send({ message: "Something went wrong", status: false });
       }
-      response
-        .status(201)
-        .send({
-          message: `Client added with ID: ${results.rows[0].id_client}`,
-          id_client: results.rows[0].id_client,
-          status: true
-        });
+      response.status(201).send({
+        message: `Client added with ID: ${results.rows[0].id_client}`,
+        id_client: results.rows[0].id_client,
+        status: true
+      });
     }
   );
 };
