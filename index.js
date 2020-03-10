@@ -38,7 +38,11 @@ app.put("/allclients/:id_client", queries.updateClient);
 app.delete("/allclients/:id_client", queries.deleteClient);
 app.get("/findclients/:surname", queries.findClient);
 
-//Administration
+// Contract
+
+// Debt
+
+//Adminka
 app.get("/bankuser/:id_user", queries.getBankUserById);
 app.get("/allbankusers", queries.getAllBankUser);
 app.post("/allbankusers", queries.createBankUser);

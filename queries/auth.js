@@ -5,6 +5,7 @@ const pool = db.pool;
 //post bank_user by login and password
 const authorization = async (request, response) => {
   const { login, password } = request.body;
+  console.log("auth", request.params, request.body);
   try {
     let results = await pool.query(
       "select password, id_user, system_role, surname, name, father_name from bank_user where login = $1",

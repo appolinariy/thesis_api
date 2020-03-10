@@ -48,17 +48,14 @@ const createBankUser = (request, response) => {
     "insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, (select id_filial from filial where address = $7), $8) returning id_user",
     [surname, name, father_name, position, login, password, address, system_role],
     (error, results) => {
-      console.log("results", results.rows);
       if (error) {
         response.status(500).send({ message: "Something went wrong", status: false });
       }
-      response
-        .status(201)
-        .send({
-          message: `User added with ID: ${results.rows[0].id_user}`,
-          id_user: results.rows[0].id_user,
-          status: true
-        });
+      response.status(201).send({
+        message: `User added with ID: ${results.rows[0].id_user}`,
+        id_user: results.rows[0].id_user,
+        status: true
+      });
     }
   );
 };
@@ -66,7 +63,7 @@ const createBankUser = (request, response) => {
 //delete a Bank User
 const deleteBankUser = (request, response) => {
   const id_user = parseInt(request.params.id_user);
-  console.log(id_user);
+  console.log("deleteBankUser", request.params, request.body);
   pool.query("delete from bank_user where id_user = $1", [id_user], (error, results) => {
     if (error) {
       response.status(500).send({ message: "Something went wrong", status: false });
@@ -78,6 +75,7 @@ const deleteBankUser = (request, response) => {
 //put updated data in the Bank User
 const updateBankUser = (request, response) => {
   const id_user = parseInt(request.params.id_user);
+  console.log("updateBankUser", request.params, request.body);
   const {
     surname,
     name,
@@ -85,13 +83,13 @@ const updateBankUser = (request, response) => {
     position,
     login,
     password,
-    id_filial,
+    address,
     system_role
   } = request.body;
-  if (id_filial && login && id_user) {
+  if (!!address && !!login && id_user !== undefined) {
     pool.query(
-      "update bank_user set surname = $1, name = $2, father_name = $3, position = $4, login = $5, password = $6, id_filial = $7, system_role = $8 where id_user = $9",
-      [surname, name, father_name, position, login, password, id_filial, system_role, id_user],
+      "update bank_user set surname = $1, name = $2, father_name = $3, position = $4, login = $5, password = $6, id_filial = (select id_filial from filial where address = $7), system_role = $8 where id_user = $9",
+      [surname, name, father_name, position, login, password, address, system_role, id_user],
       (error, results) => {
         if (error) {
           response.status(500).send({ message: "Something went wrong", status: false });
@@ -107,7 +105,7 @@ const updateBankUser = (request, response) => {
 //search data in the Bank User
 const findBankUser = async (request, response) => {
   const { surname } = request.params;
-  console.log("findBankUser", request.params);
+  console.log("findBankUser", request.params, request.body);
   try {
     let results = await pool.query(
       `select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`
