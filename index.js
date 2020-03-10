@@ -40,7 +40,7 @@ app.get("/findclients/:surname", queries.findClient);
 
 // Contract
 
-// Debt
+// Payment
 
 //Adminka
 app.get("/bankuser/:id_user", queries.getBankUserById);
