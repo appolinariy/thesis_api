@@ -39,6 +39,8 @@ app.delete("/allclients/:id_client", queries.deleteClient);
 app.get("/findclients/:surname", queries.findClient);
 
 // Contract
+app.get("/allcontracts", queries.getContracts);
+app.get("/findcontract/:number_contract", queries.findContract);
 
 // Payment
 

@@ -8,10 +8,6 @@ const getAllClients = (request, response) => {
     if (error) {
       response.status(500).send({ message: "Something went wrong", status: false });
     }
-    results.rows.map(row => {
-      row.birthday = row.birthday.toLocaleDateString();
-      row.exp_passport_date = row.exp_passport_date.toLocaleDateString();
-    });
     response.status(200).send({ data: results.rows, status: true });
   });
 };
@@ -124,10 +120,6 @@ const findClient = async (request, response) => {
     let results = await pool.query(
       `select client.* from client where client.surname like '%${surname}%' order by client.id_client ASC`
     );
-    results.rows.map(row => {
-      row.birthday = row.birthday.toLocaleDateString();
-      row.exp_passport_date = row.exp_passport_date.toLocaleDateString();
-    });
     response.status(200).send({ data: results.rows, status: true });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });

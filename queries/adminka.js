@@ -21,7 +21,7 @@ const getBankUserById = (request, response) => {
 const getAllBankUser = async (request, response) => {
   try {
     let results = await pool.query(
-      "select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial order by bank_user.id_user ASC"
+      "select bank_user.*, filial.address from bank_user join filial on filial.id_filial = bank_user.id_filial order by bank_user.id_user ASC"
     );
     let filials = await pool.query("select address, id_filial from filial");
     response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
@@ -108,9 +108,9 @@ const findBankUser = async (request, response) => {
   console.log("findBankUser", request.params, request.body);
   try {
     let results = await pool.query(
-      `select bank_user.*, filial.address FROM BANK_USER join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`
+      `select bank_user.*, filial.address from bank_user join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`
     );
-    let filials = await pool.query("select address, id_filial from filial");
+    let filials = await pool.query(`select address, id_filial from filial`);
     response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });
