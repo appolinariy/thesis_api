@@ -17,7 +17,7 @@ const getContracts = async (request, response) => {
 };
 
 //post a new contract
-const createContract = (request, response) => {
+const createContract = async (request, response) => {
   console.log("createContract", request.body, request.params);
   const {
     number_contract,
@@ -25,39 +25,39 @@ const createContract = (request, response) => {
     start_date,
     term_contract,
     amount_contract,
-    year_percent,
-    flag_payment
+    year_percent
   } = request.body;
-  let arr_fio = request.body.fio.split(" ");
-  let surname = arr_fio[0],
-    name = arr_fio[1],
-    father_name = arr_fio[2];
-  pool.query(
-    `insert into contract(id_client, number_contract, start_date, end_date, amount_contract, year_percent, 
-    month_pay, penya_percent_day, flag_payment, amount_debtpay, term_contract) 
-    values((select id_client from client where surname=$6, name=$7, father_name=$8), $1, $2, $2 + $3 * interval '1 month',
-    $4, $5, round(($4 + ($4*$5/100))/$3, 2), 1.0, false, round($4 + ($4*$5/100),2), $3) returning id_contract;`,
-    [
-      number_contract,
-      start_date,
-      term_contract,
-      amount_contract,
-      year_percent,
-      surname,
-      name,
-      father_name
-    ],
-    (error, result) => {
-      if (error) {
-        response.status(500).send({ message: "Something went wrong", status: false });
-      }
-      response.status(201).send({
-        message: `Contract added with ID: ${results.rows[0].id_contract}`,
-        id_contract: results.rows[0].id_contract,
-        status: true
-      });
-    }
-  );
+
+  try {
+    let arr_fio = fio.split(" ");
+    let surname = arr_fio[0],
+      name = arr_fio[1],
+      father_name = arr_fio[2];
+    console.log("ФИО: ", surname, name, father_name);
+    const results = await pool.query(
+      `insert into contract(id_client, number_contract, start_date, amount_contract, year_percent, month_pay, penya_percent_day, flag_payment, amount_debtpay, term_contract)
+      values(
+            (select id_client from client where surname='${surname}' and name='${name}' and father_name='${father_name}'), 
+            '${number_contract}', 
+            '${start_date}', 
+            ${amount_contract}, 
+            ${year_percent}, 
+            round(${amount_contract} + (${amount_contract}*${year_percent}/100)/${term_contract}, 2), 
+            1.0, 
+            false, 
+            round(${amount_contract} + (${amount_contract}*${year_percent}/100), 2), 
+            ${term_contract}) returning id_contract`
+    );
+
+    response.status(201).send({
+      message: `Contract added with ID: ${results.rows[0].id_contract}`,
+      id_contract: results.rows[0].id_contract,
+      status: true
+    });
+  } catch (err) {
+    console.log(err);
+    response.status(500).send({ message: "Something went wrong", status: false });
+  }
 };
 
 //search the contract
