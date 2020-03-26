@@ -79,7 +79,7 @@ const findContract = async (request, response) => {
 //contract filtering by period: from_date - to_date
 const filterContract = async (request, response) => {
   const { from_date, to_date } = request.params;
-  console.log("filterContract", request.params, request.body);
+  console.log("filterContract by start_date", request.params, request.body);
   try {
     let results = await pool.query(
       `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where start_date>=${from_date} and start_date<=${to_date};`
