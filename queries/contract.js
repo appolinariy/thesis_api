@@ -76,4 +76,20 @@ const findContract = async (request, response) => {
   }
 };
 
-module.exports = { getContracts, createContract, findContract };
+//contract filtering by period: from_date - to_date
+const filterContract = async (request, response) => {
+  const { from_date, to_date } = request.params;
+  console.log("filterContract", request.params, request.body);
+  try {
+    let results = await pool.query(
+      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where start_date>=${from_date} and start_date<=${to_date};`
+    );
+    let borrowers = await pool.query(`select surname, name, father_name, id_client from client;`);
+    response.status(200).send({ data: results.rows, borrowers: borrowers.rows, status: true });
+  } catch (err) {
+    response.status(500).send({ message: "Something went wrong", status: false });
+    console.log(err);
+  }
+};
+
+module.exports = { getContracts, createContract, findContract, filterContract };

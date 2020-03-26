@@ -42,6 +42,7 @@ app.get("/findclients/:surname", queries.findClient);
 app.get("/allcontracts", queries.getContracts);
 app.post("/allcontracts", queries.createContract);
 app.get("/findcontract/:number_contract", queries.findContract);
+app.get("/filtercontract/:start_date", queries.filterContract);
 
 // Payment
 
