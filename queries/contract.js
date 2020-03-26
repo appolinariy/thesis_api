@@ -42,7 +42,7 @@ const createContract = async (request, response) => {
             '${start_date}', 
             ${amount_contract}, 
             ${year_percent}, 
-            round(${amount_contract} + (${amount_contract}*${year_percent}/100)/${term_contract}, 2), 
+            round((${amount_contract} + (${amount_contract}*${year_percent}/100))/${term_contract}, 2), 
             1.0, 
             false, 
             round(${amount_contract} + (${amount_contract}*${year_percent}/100), 2), 
@@ -82,7 +82,7 @@ const filterContract = async (request, response) => {
   console.log("filterContract by start_date", request.params, request.body);
   try {
     let results = await pool.query(
-      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where start_date>=${from_date} and start_date<=${to_date};`
+      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where start_date>='${from_date}' and start_date<='${to_date}';`
     );
     let borrowers = await pool.query(`select surname, name, father_name, id_client from client;`);
     response.status(200).send({ data: results.rows, borrowers: borrowers.rows, status: true });
