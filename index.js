@@ -45,6 +45,8 @@ app.get("/findcontract/:number_contract", queries.findContract);
 app.get("/filtercontract/:start_date", queries.filterContract);
 
 // Payment
+app.get("/allpayments/:number_contract", queries.getPaymentSchedule);
+app.put("/allpayments/:number_contract", queries.addPaymentDebt);
 
 //Adminka
 app.get("/bankuser/:id_user", queries.getBankUserById);
