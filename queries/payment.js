@@ -5,11 +5,12 @@ const pool = db.pool;
 //get payment schedule by number_contract
 const getPaymentSchedule = async (request, response) => {
   const { number_contract } = request.params;
-  console.log("getPaymentSchedule", request.params, request.body);
+  console.log("getPaymentSchedule", request.params);
   try {
     let results = await pool.query(
       `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${number_contract}');`
     );
+    console.log(results, "results");
     response.status(200).send({ data: results.rows, status: true });
   } catch (err) {
     response.status(500).send({ message: "Smth went wrong", status: false });
@@ -46,7 +47,7 @@ const addPaymentDebt = async (request, response) => {
     let rows = await pool.query(
       `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${number_contract}') order by plan_date_pay;`
     );
-    let results = rows.rows.map(payment => {
+    let results = rows.rows.map((payment) => {
       const plan_amount_pay = parseFloat(payment.plan_amount_pay);
       const fact_amount_pay = parseFloat(payment.fact_amount_pay);
       console.log(plan_amount_pay, fact_amount_pay);
@@ -68,7 +69,7 @@ const addPaymentDebt = async (request, response) => {
         return {
           ...payment,
           fact_amount_pay: fact_amount_pay + z,
-          fact_date_pay: current_date_pay
+          fact_date_pay: current_date_pay,
         };
       } else return payment;
     });

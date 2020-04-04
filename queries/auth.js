@@ -25,7 +25,7 @@ const authorization = async (request, response) => {
       system_role: results.rows[0].system_role,
       surname: results.rows[0].surname,
       name: results.rows[0].name,
-      father_name: results.rows[0].father_name
+      father_name: results.rows[0].father_name,
     });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });
