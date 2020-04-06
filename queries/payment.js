@@ -8,7 +8,7 @@ const getPaymentSchedule = async (request, response) => {
   console.log("getPaymentSchedule", request.params);
   try {
     let results = await pool.query(
-      `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${number_contract}');`
+      `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${number_contract}') order by plan_date_pay;`
     );
     console.log(results, "results");
     response.status(200).send({ data: results.rows, status: true });
