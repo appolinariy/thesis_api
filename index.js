@@ -8,10 +8,10 @@ const queries = require("./queries");
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
-    extended: true
+    extended: true,
   })
 );
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
   res.header(
     "Access-Control-Allow-Headers",
@@ -42,8 +42,11 @@ app.get("/findclients/:surname", queries.findClient);
 app.get("/allcontracts", queries.getContracts);
 app.post("/allcontracts", queries.createContract);
 app.get("/findcontract/:number_contract", queries.findContract);
+app.get("/filtercontract/fromdate/:from_date/todate/:to_date", queries.filterContract);
 
 // Payment
+app.get("/allpayments/:number_contract", queries.getPaymentSchedule);
+app.put("/allpayments/:number_contract", queries.addPaymentDebt);
 
 //Adminka
 app.get("/bankuser/:id_user", queries.getBankUserById);
