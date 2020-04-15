@@ -64,7 +64,6 @@ const addPaymentDebt = async (request, response) => {
           dates.push(`when id_pay=${payment.id_pay} then '${current_date_pay}'`);
         }
 
-        // pays.push([payment.id_pay, (fact_amount_pay + z).toFixed(2), current_date_pay]);
         current_amount_pay -= z;
         return {
           ...payment,
@@ -90,4 +89,60 @@ const addPaymentDebt = async (request, response) => {
   }
 };
 
-module.exports = { getPaymentSchedule, addPaymentDebt };
+//countDebts - рассчет остатка по задолженностям и обновление статусов контрактов (Завершен/Активен)
+const countDebts = async (request, response) => {
+  console.log("Рассчет остатка по задолженностям");
+  let d = new Date();
+  d.setDate(d.getDate() - 1);
+  let current_date = new Date(d).toLocaleDateString().split("/").join(".");
+  try {
+    let rows_contracts_active = await pool.query(
+      `select * from contract where flag_payment=false order by id_contract;`
+    );
+    let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
+      let rows_payments = await pool.query(
+        `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${contract.number_contract}') order by plan_date_pay;`
+      );
+      let count_pays = 0,
+        count_flags = 0;
+      let pays = [];
+      let results_payments = rows_payments.rows.map((payment) => {
+        count_pays += 1;
+        const plan_amount_pay = parseFloat(payment.plan_amount_pay);
+        const fact_amount_pay = parseFloat(payment.fact_amount_pay);
+        const debt_penya = parseFloat(payment.debt_penya);
+        const fact_amount_penya = parseFloat(payment.fact_amount_penya);
+        const debt_month_pay = parseFloat(payment.debt_month_pay);
+        debt_month_penya = parseFloat(payment.debt_month_penya);
+        if (plan_amount_pay < current_date) {
+          debt_month_pay = plan_amount_pay - fact_amount_pay;
+          debt_penya = debt_penya + 0.01 * debt_month_pay;
+          debt_month_penya = debt_penya - fact_amount_penya;
+        }
+        if (plan_amount_pay == fact_amount_pay && debt_penya == fact_amount_penya) {
+          count_flags += 1;
+        }
+        const obj = {
+          ...payment,
+          debt_month_pay: debt_month_pay,
+          debt_penya: debt_penya,
+          debt_month_penya: debt_month_penya,
+        };
+        pays.push(obj);
+        return obj;
+      });
+      if (count_pays == count_flags) {
+        contract.flag_payment = true;
+      }
+      return { ...contract, payments: pays };
+    });
+    Promise.all(results_contracts).then((res) =>
+      response.status(200).send({ results: res, status: true })
+    );
+  } catch (err) {
+    console.log(err);
+    response.status(500).send({ message: "OOps", status: false });
+  }
+};
+
+module.exports = { getPaymentSchedule, addPaymentDebt, countDebts };
