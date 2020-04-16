@@ -110,14 +110,27 @@ const countDebts = async (request, response) => {
         count_pays += 1;
         const plan_amount_pay = parseFloat(payment.plan_amount_pay);
         const fact_amount_pay = parseFloat(payment.fact_amount_pay);
-        const debt_penya = parseFloat(payment.debt_penya);
+        let debt_penya = parseFloat(payment.debt_penya);
         const fact_amount_penya = parseFloat(payment.fact_amount_penya);
-        const debt_month_pay = parseFloat(payment.debt_month_pay);
-        debt_month_penya = parseFloat(payment.debt_month_penya);
-        if (plan_amount_pay < current_date) {
+        let debt_month_pay = parseFloat(payment.debt_month_pay);
+        let debt_month_penya = parseFloat(payment.debt_month_penya);
+        const plan_date_pay = new Date(payment.plan_date_pay)
+          .toLocaleDateString()
+          .split("/")
+          .join(".");
+        if (new Date(plan_date_pay) < new Date(current_date)) {
           debt_month_pay = plan_amount_pay - fact_amount_pay;
           debt_penya = debt_penya + 0.01 * debt_month_pay;
           debt_month_penya = debt_penya - fact_amount_penya;
+          if (debt_month_pay != 0) {
+            debt_month_pay = debt_month_pay.toFixed(2);
+          }
+          if (debt_penya != 0) {
+            debt_penya = debt_penya.toFixed(2);
+          }
+          if (debt_month_penya != 0) {
+            debt_month_penya = debt_month_penya.toFixed(2);
+          }
         }
         if (plan_amount_pay == fact_amount_pay && debt_penya == fact_amount_penya) {
           count_flags += 1;
