@@ -162,7 +162,6 @@ const countDebts = async (request, response) => {
     });
 
     Promise.all(results_contracts).then((res) => {
-      console.log("FLAG_PAYMENT", `${arr_flag_payment.join(" ")}`);
       const updateFlag_Payment = pool.query(
         `update contract set flag_payment = case ${arr_flag_payment.join(
           " "
@@ -183,7 +182,6 @@ const countDebts = async (request, response) => {
           " "
         )} else debt_penya end;`
       );
-      console.log("ready");
       response.status(200).send({ results: res, status: true });
     });
   } catch (err) {
