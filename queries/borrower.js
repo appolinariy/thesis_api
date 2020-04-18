@@ -103,7 +103,7 @@ const updateClient = (request, response) => {
 //delete a Сlient
 const deleteClient = (request, response) => {
   const id_client = parseInt(request.params.id_client);
-  cconsole.log("deleteClient", request.params, request.body);
+  console.log("deleteClient", request.params, request.body);
   pool.query("delete from client where id_client = $1", [id_client], (error, results) => {
     if (error) {
       response.status(500).send({ message: "Something went wrong", status: false });
