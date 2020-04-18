@@ -96,6 +96,11 @@ const countDebts = async (request, response) => {
   d.setDate(d.getDate() - 1);
   let current_date = new Date(d).toLocaleDateString().split("/").join(".");
   try {
+    let arr_debt_month_pay = [],
+      arr_debt_penya = [],
+      arr_debt_month_penya = [],
+      arr_flag_payment = [];
+
     let rows_contracts_active = await pool.query(
       `select * from contract where flag_payment=false order by id_contract;`
     );
@@ -131,6 +136,9 @@ const countDebts = async (request, response) => {
           if (debt_month_penya != 0) {
             debt_month_penya = debt_month_penya.toFixed(2);
           }
+          arr_debt_month_pay.push(`when id_pay=${payment.id_pay} then ${debt_month_pay}`);
+          arr_debt_penya.push(`when id_pay=${payment.id_pay} then ${debt_penya}`);
+          arr_debt_month_penya.push(`when id_pay=${payment.id_pay} then ${debt_month_penya}`);
         }
         if (plan_amount_pay == fact_amount_pay && debt_penya == fact_amount_penya) {
           count_flags += 1;
@@ -146,12 +154,38 @@ const countDebts = async (request, response) => {
       });
       if (count_pays == count_flags) {
         contract.flag_payment = true;
+        arr_flag_payment.push(
+          `when id_contract=${contract.id_contract} then ${contract.flag_payment}`
+        );
       }
       return { ...contract, payments: pays };
     });
-    Promise.all(results_contracts).then((res) =>
-      response.status(200).send({ results: res, status: true })
-    );
+
+    Promise.all(results_contracts).then((res) => {
+      console.log("FLAG_PAYMENT", `${arr_flag_payment.join(" ")}`);
+      const updateFlag_Payment = pool.query(
+        `update contract set flag_payment = case ${arr_flag_payment.join(
+          " "
+        )} else flag_payment end;`
+      );
+      const updateDebt_Month_Pay = pool.query(
+        `update graphic_payment set debt_month_pay = case ${arr_debt_month_pay.join(
+          " "
+        )} else debt_month_pay end;`
+      );
+      const updateDebt_Month_Penya = pool.query(
+        `update graphic_payment set debt_month_penya = case ${arr_debt_month_penya.join(
+          " "
+        )} else debt_month_penya end;`
+      );
+      const updateDebt_Penya = pool.query(
+        `update graphic_payment set debt_penya = case ${arr_debt_penya.join(
+          " "
+        )} else debt_penya end;`
+      );
+      console.log("ready");
+      response.status(200).send({ results: res, status: true });
+    });
   } catch (err) {
     console.log(err);
     response.status(500).send({ message: "OOps", status: false });
