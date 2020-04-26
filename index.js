@@ -46,7 +46,9 @@ app.get("/filtercontract/fromdate/:from_date/todate/:to_date", queries.filterCon
 
 // Payment
 app.get("/allpayments/:number_contract", queries.getPaymentSchedule);
-app.put("/allpayments/:number_contract", queries.addPaymentDebt);
+app.put("/allpayments/mainpay/:number_contract", queries.addPaymentDebt);
+app.put("/allpayments/penya/:number_contract", queries.addPaymentPenya);
+app.put("/allpayments", queries.countDebts);
 
 //Adminka
 app.get("/bankuser/:id_user", queries.getBankUserById);

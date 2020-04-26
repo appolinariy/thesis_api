@@ -8,7 +8,9 @@ const getContracts = async (request, response) => {
     let results = await pool.query(
       `select contract.*, client.surname, client.name, client.father_name from contract, client where contract.id_client=client.id_client order by id_contract ASC;`
     );
-    let borrowers = await pool.query(`select surname, name, father_name, id_client from client;`);
+    let borrowers = await pool.query(
+      `select surname, name, father_name, id_client from client order by surname ASC;`
+    );
     response.status(200).send({ data: results.rows, borrowers: borrowers.rows, status: true });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });
@@ -25,7 +27,7 @@ const createContract = async (request, response) => {
     start_date,
     term_contract,
     amount_contract,
-    year_percent
+    year_percent,
   } = request.body;
 
   try {
@@ -33,7 +35,7 @@ const createContract = async (request, response) => {
     let surname = arr_fio[0],
       name = arr_fio[1],
       father_name = arr_fio[2];
-    console.log("ФИО: ", surname, name, father_name);
+    console.log("START CREATE CONTRACT", request.body);
     const results = await pool.query(
       `insert into contract(id_client, number_contract, start_date, amount_contract, year_percent, month_pay, penya_percent_day, flag_payment, amount_debtpay, term_contract)
       values(
@@ -52,7 +54,7 @@ const createContract = async (request, response) => {
     response.status(201).send({
       message: `Contract added with ID: ${results.rows[0].id_contract}`,
       id_contract: results.rows[0].id_contract,
-      status: true
+      status: true,
     });
   } catch (err) {
     console.log(err);

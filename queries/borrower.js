@@ -4,7 +4,7 @@ const pool = db.pool;
 
 //get clients
 const getAllClients = (request, response) => {
-  pool.query("select * from client order by id_client ASC;", (error, results) => {
+  pool.query("select * from client order by surname ASC;", (error, results) => {
     if (error) {
       response.status(500).send({ message: "Something went wrong", status: false });
     }
@@ -24,7 +24,7 @@ const createClient = (request, response) => {
     address,
     passport_number,
     exp_passport_date,
-    passport_by
+    passport_by,
   } = request.body;
   console.log("createClient", request.params, request.body);
   pool.query(
@@ -39,7 +39,7 @@ const createClient = (request, response) => {
       address,
       passport_number,
       exp_passport_date,
-      passport_by
+      passport_by,
     ],
     (error, results) => {
       if (error) {
@@ -48,7 +48,7 @@ const createClient = (request, response) => {
       response.status(201).send({
         message: `Client added with ID: ${results.rows[0].id_client}`,
         id_client: results.rows[0].id_client,
-        status: true
+        status: true,
       });
     }
   );
@@ -67,7 +67,7 @@ const updateClient = (request, response) => {
     address,
     passport_number,
     exp_passport_date,
-    passport_by
+    passport_by,
   } = request.body;
   console.log("updateClient", request.params, request.body);
   if (id_client) {
@@ -84,7 +84,7 @@ const updateClient = (request, response) => {
         passport_number,
         exp_passport_date,
         passport_by,
-        id_client
+        id_client,
       ],
       (error, results) => {
         if (error) {
@@ -103,7 +103,7 @@ const updateClient = (request, response) => {
 //delete a Сlient
 const deleteClient = (request, response) => {
   const id_client = parseInt(request.params.id_client);
-  cconsole.log("deleteClient", request.params, request.body);
+  console.log("deleteClient", request.params, request.body);
   pool.query("delete from client where id_client = $1", [id_client], (error, results) => {
     if (error) {
       response.status(500).send({ message: "Something went wrong", status: false });
