@@ -92,4 +92,55 @@ const filterContract = async (request, response) => {
   }
 };
 
-module.exports = { getContracts, createContract, findContract, filterContract };
+//filtration of contracts by delay - фильтраця контрактов по просрочке
+const filterGraphs = async (request, response) => {
+  console.log("Фильтрация контрактов по просрочке");
+  let d = new Date();
+  d.setDate(d.getDate());
+  let current_date = new Date(d);
+  try {
+    let expContracts = [];
+
+    let rows_contracts_active = await pool.query(
+      `select * from contract where flag_payment=false order by id_contract;`
+    );
+    let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
+      let rows_payments = await pool.query(
+        `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${contract.number_contract}') order by plan_date_pay;`
+      );
+      rows_payments.rows.forEach((payment) => {
+        const plan_date_pay = new Date(payment.plan_date_pay);
+        const fact_date_pay = new Date(payment.fact_date_pay);
+        if (current_date >= plan_date_pay && fact_date_pay > plan_date_pay) {
+          console.log("expContracts", contract.number_contract);
+          expContracts.push(contract);
+          return contract;
+        } else {
+          return payment;
+        }
+      });
+      return contract;
+    });
+    let rows_contracts = await pool.query(`select * from contract order by id_contract;`);
+    Promise.all(results_contracts).then((res) => {
+      console.log("Просроченные контракты", expContracts);
+      let okContracts = rows_contracts.rows.filter((contract) => {
+        let flag = true;
+        expContracts.forEach((expContract) => {
+          if (contract.number_contract == expContract.number_contract) {
+            flag = false;
+          }
+        });
+        return flag;
+      });
+      response
+        .status(200)
+        .send({ expContracts: expContracts, okContracts: okContracts, status: true });
+    });
+  } catch (err) {
+    response.status(500).send({ message: "Something went wrong", status: false });
+    console.log(err);
+  }
+};
+
+module.exports = { getContracts, createContract, findContract, filterContract, filterGraphs };

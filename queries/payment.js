@@ -18,21 +18,6 @@ const getPaymentSchedule = async (request, response) => {
   }
 };
 
-//search the contract / fio
-// const findContractFio = async (request, response) => {
-//   const { number_contract } = request.params;
-//   console.log("findContractFio", request.params, request.body);
-//   try {
-//     let results = await pool.query(
-//       `select id_contract, number_contract, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%'order by id_contract ASC;`
-//     );
-//     response.status(200).send({ data: results.rows, status: true });
-//   } catch (err) {
-//     response.status(500).send({ message: "Something went wrong", status: false });
-//     console.log(err);
-//   }
-// };
-
 //put a new debt payment
 const addPaymentDebt = async (request, response) => {
   let { number_contract } = request.params;
@@ -151,7 +136,7 @@ const countDebts = async (request, response) => {
   console.log("Рассчет остатка по задолженностям");
   let d = new Date();
   d.setDate(d.getDate() - 1);
-  let current_date = new Date(d).toLocaleDateString().split("/").join(".");
+  let current_date = new Date(d);
   try {
     let arr_debt_month_pay = [],
       arr_debt_penya = [],
@@ -176,11 +161,8 @@ const countDebts = async (request, response) => {
         const fact_amount_penya = parseFloat(payment.fact_amount_penya);
         let debt_month_pay = parseFloat(payment.debt_month_pay);
         let debt_month_penya = parseFloat(payment.debt_month_penya);
-        const plan_date_pay = new Date(payment.plan_date_pay)
-          .toLocaleDateString()
-          .split("/")
-          .join(".");
-        if (new Date(plan_date_pay) < new Date(current_date)) {
+        const plan_date_pay = new Date(payment.plan_date_pay);
+        if (plan_date_pay < current_date) {
           debt_month_pay = plan_amount_pay - fact_amount_pay;
           debt_penya = debt_penya + 0.01 * debt_month_pay;
           debt_month_penya = debt_penya - fact_amount_penya;

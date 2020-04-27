@@ -43,6 +43,7 @@ app.get("/allcontracts", queries.getContracts);
 app.post("/allcontracts", queries.createContract);
 app.get("/findcontract/:number_contract", queries.findContract);
 app.get("/filtercontract/fromdate/:from_date/todate/:to_date", queries.filterContract);
+app.get("/filtergraphs", queries.filterGraphs);
 
 // Payment
 app.get("/allpayments/:number_contract", queries.getPaymentSchedule);
