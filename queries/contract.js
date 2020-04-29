@@ -92,7 +92,7 @@ const filterContract = async (request, response) => {
   }
 };
 
-//filtration of contracts by delay - фильтраця контрактов по просрочке
+//filtration of contracts by delay - фильтрация контрактов по просрочке
 const filterGraphs = async (request, response) => {
   console.log("Фильтрация контрактов по просрочке");
   let d = new Date();
@@ -102,7 +102,7 @@ const filterGraphs = async (request, response) => {
     let expContracts = [];
 
     let rows_contracts_active = await pool.query(
-      `select * from contract where flag_payment=false order by id_contract;`
+      `select contract.*, surname, name, father_name from contract, client where flag_payment=false and client.id_client=contract.id_client order by id_contract;`
     );
     let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
       let rows_payments = await pool.query(
@@ -111,7 +111,10 @@ const filterGraphs = async (request, response) => {
       rows_payments.rows.forEach((payment) => {
         const plan_date_pay = new Date(payment.plan_date_pay);
         const fact_date_pay = new Date(payment.fact_date_pay);
-        if (current_date >= plan_date_pay && fact_date_pay > plan_date_pay) {
+        if (
+          current_date > plan_date_pay &&
+          (fact_date_pay > plan_date_pay || fact_date_pay <= new Date(2000, 1, 1))
+        ) {
           console.log("expContracts", contract.number_contract);
           expContracts.push(contract);
           return contract;
@@ -121,9 +124,10 @@ const filterGraphs = async (request, response) => {
       });
       return contract;
     });
-    let rows_contracts = await pool.query(`select * from contract order by id_contract;`);
+    let rows_contracts = await pool.query(
+      `select contract.*, surname, name, father_name from contract, client where client.id_client=contract.id_client order by id_contract;`
+    );
     Promise.all(results_contracts).then((res) => {
-      console.log("Просроченные контракты", expContracts);
       let okContracts = rows_contracts.rows.filter((contract) => {
         let flag = true;
         expContracts.forEach((expContract) => {
@@ -133,9 +137,12 @@ const filterGraphs = async (request, response) => {
         });
         return flag;
       });
-      response
-        .status(200)
-        .send({ expContracts: expContracts, okContracts: okContracts, status: true });
+      response.status(200).send({
+        expContracts: expContracts,
+        okContracts: okContracts,
+        rows_contracts: rows_contracts.rows,
+        status: true,
+      });
     });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });
