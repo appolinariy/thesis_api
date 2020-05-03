@@ -101,15 +101,17 @@ const updateClient = (request, response) => {
 };
 
 //delete a Сlient
-const deleteClient = (request, response) => {
+const deleteClient = async (request, response) => {
   const id_client = parseInt(request.params.id_client);
   console.log("deleteClient", request.params, request.body);
-  pool.query("delete from client where id_client = $1", [id_client], (error, results) => {
-    if (error) {
-      response.status(500).send({ message: "Something went wrong", status: false });
-    }
+  try {
+    await pool.query("delete from client where id_client = $1", [id_client]);
     response.status(200).send({ message: `Client deleted with ID: ${id_client}`, status: true });
-  });
+  } catch (error) {
+    console.log(error);
+    console.log("Something went wrong");
+    response.status(500).send({ message: "Something went wrong", status: false });
+  }
 };
 
 // search a client - положить в экспорт еще

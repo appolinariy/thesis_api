@@ -55,7 +55,6 @@ app.put("/allpayments", queries.countDebts);
 app.get("/bankuser/:id_user", queries.getBankUserById);
 app.get("/allbankusers", queries.getAllBankUser);
 app.post("/allbankusers", queries.createBankUser);
-app.delete("/allbankusers/:id_user", queries.deleteBankUser);
 app.put("/allbankusers/:id_user", queries.updateBankUser);
 app.get("/findbankuser/:surname", queries.findBankUser);
 
