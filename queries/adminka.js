@@ -3,68 +3,28 @@ const db = require("../db");
 
 const pool = db.pool;
 
-//get a single bank_user by id
-const getBankUserById = (request, response) => {
-  const id_user = request.params.id_user;
-  pool.query(
-    "select surname, name, father_name, position, login, system_role, filial.address from bank_user,filial where bank_user.id_filial=filial.id_filial and id_user = $1;",
-    [id_user],
-    (error, results) => {
-      if (error) {
-        response.status(500).send({ message: "Something went wrong", status: false });
-      }
-      response.status(200).send({ data: results.rows, status: true });
-    }
-  );
-};
-
 //get bank_users
 const getAllBankUser = async (request, response) => {
   try {
     let results = await pool.query(
       "select bank_user.*, filial.address from bank_user join filial on filial.id_filial = bank_user.id_filial order by bank_user.id_user ASC"
     );
+    let res = results.rows.map((el) => {
+      let resPass = jwt.verify(el.password, process.env.PRIVATE_KEY);
+      el.password = resPass.passport;
+      return el;
+    });
     let filials = await pool.query("select address, id_filial from filial");
-    response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
+    response.status(200).send({ data: res, status: true, filials: filials.rows });
   } catch (err) {
     response.status(500).send({ message: "Something went wrong", status: false });
     console.log(err);
   }
 };
 
-//post a new Bank User - доделать
+//post a new Bank User
 const createBankUser = (request, response) => {
-  console.log("createBankUser", request.body, request.params);
-  const {
-    surname,
-    name,
-    father_name,
-    position,
-    login,
-    password,
-    address,
-    system_role,
-  } = request.body;
-  pool.query(
-    "insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, (select id_filial from filial where address = $7), $8) returning id_user",
-    [surname, name, father_name, position, login, password, address, system_role],
-    (error, results) => {
-      if (error) {
-        response.status(500).send({ message: "Something went wrong", status: false });
-      }
-      response.status(201).send({
-        message: `User added with ID: ${results.rows[0].id_user}`,
-        id_user: results.rows[0].id_user,
-        status: true,
-      });
-    }
-  );
-};
-
-//put updated data in the Bank User
-const updateBankUser = (request, response) => {
-  const id_user = parseInt(request.params.id_user);
-  console.log("updateBankUser", request.params, request.body);
+  console.log("createBankUser");
   const {
     surname,
     name,
@@ -76,9 +36,40 @@ const updateBankUser = (request, response) => {
     system_role,
   } = request.body;
   try {
-    let privateKey = "mandarin";
-    let token = jwt.sign({ passport: password }, privateKey);
-    console.log("userToken here: ", token);
+    let token = jwt.sign({ passport: password }, process.env.PRIVATE_KEY);
+
+    if (token.length <= 150) {
+      let results = pool.query(
+        "insert into bank_user (surname, name, father_name, position, login, password, id_filial, system_role) values ($1, $2, $3, $4, $5, $6, (select id_filial from filial where address = $7), $8) returning id_user",
+        [surname, name, father_name, position, login, token, address, system_role]
+      );
+    }
+    response.status(201).send({
+      message: `User added with ID: ${results.rows[0].id_user}`,
+      id_user: results.rows[0].id_user,
+      status: true,
+    });
+  } catch (error) {
+    response.status(500).send({ message: "Something went wrong", status: false });
+  }
+};
+
+//put updated data in the Bank User
+const updateBankUser = (request, response) => {
+  const id_user = parseInt(request.params.id_user);
+  console.log("updateBankUser", request.params);
+  const {
+    surname,
+    name,
+    father_name,
+    position,
+    login,
+    password,
+    address,
+    system_role,
+  } = request.body;
+  try {
+    let token = jwt.sign({ passport: password }, process.env.PRIVATE_KEY);
 
     if (!!address && !!login && id_user !== undefined && token.length <= 150) {
       pool.query(
@@ -109,7 +100,6 @@ const findBankUser = async (request, response) => {
 };
 
 module.exports = {
-  getBankUserById,
   getAllBankUser,
   createBankUser,
   updateBankUser,

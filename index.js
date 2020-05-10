@@ -52,7 +52,6 @@ app.put("/allpayments/penya/:number_contract", queries.addPaymentPenya);
 app.put("/allpayments", queries.countDebts);
 
 //Adminka
-app.get("/bankuser/:id_user", queries.getBankUserById);
 app.get("/allbankusers", queries.getAllBankUser);
 app.post("/allbankusers", queries.createBankUser);
 app.put("/allbankusers/:id_user", queries.updateBankUser);
