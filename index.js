@@ -31,12 +31,13 @@ app.post("/auth", queries.authorization);
 //Filial
 app.get("/filials", queries.getFilials);
 
-//Client
+//Borrower
 app.get("/allclients", queries.getAllClients);
 app.post("/allclients", queries.createClient);
 app.put("/allclients/:id_client", queries.updateClient);
 app.delete("/allclients/:id_client", queries.deleteClient);
 app.get("/findclients/:surname", queries.findClient);
+app.post("/sentMail", queries.sentMail);
 
 // Contract
 app.get("/allcontracts", queries.getContracts);

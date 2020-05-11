@@ -1,3 +1,4 @@
+const nodemailer = require("nodemailer");
 const db = require("../db");
 
 const pool = db.pool;
@@ -114,7 +115,7 @@ const deleteClient = async (request, response) => {
   }
 };
 
-// search a client - положить в экспорт еще
+// search a client
 const findClient = async (request, response) => {
   const { surname } = request.params;
   console.log("findClient", request.params, request.body);
@@ -128,4 +129,37 @@ const findClient = async (request, response) => {
   }
 };
 
-module.exports = { getAllClients, createClient, updateClient, deleteClient, findClient };
+// send e-mail to borrowers
+const sentMail = async (request, response) => {
+  console.log("Рассылка электронных писем");
+  try {
+    let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
+    let transporter = nodemailer.createTransport({
+      host: "smtp.mail.ru",
+      port: 465,
+      secure: true,
+      auth: {
+        user: emailAccount.user,
+        pass: emailAccount.pass,
+      },
+    });
+    console.log(transporter);
+
+    let mailOptions = {
+      from: `"SkyBank", <${emailAccount.user}>`,
+      to: "abramova.polina.2001@gmail.com",
+      subject: "Message from SkyBank",
+      text: "This message was sent from SkyBank.",
+      html: "This <i>message</i> was sent from <strong>SkyBank</strong> server.",
+    };
+    let result = await transporter.sendMail(mailOptions);
+
+    console.log("Result: ", result);
+    console.log("Preview URL: ", nodemailer.getTestMessageUrl(result));
+    response.status(200).send({ message: "Отправлено письмо", result: result, status: true });
+  } catch (error) {
+    response.status(500).send({ message: "Something went wrong", status: false });
+  }
+};
+
+module.exports = { getAllClients, createClient, updateClient, deleteClient, findClient, sentMail };
