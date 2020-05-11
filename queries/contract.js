@@ -108,6 +108,7 @@ const filterGraphs = async (request, response) => {
       let rows_payments = await pool.query(
         `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${contract.number_contract}') order by plan_date_pay;`
       );
+      let f = 0;
       rows_payments.rows.forEach((payment) => {
         const plan_date_pay = new Date(payment.plan_date_pay);
         const fact_date_pay = new Date(payment.fact_date_pay);
@@ -116,12 +117,13 @@ const filterGraphs = async (request, response) => {
           (fact_date_pay > plan_date_pay || fact_date_pay <= new Date(2000, 1, 1))
         ) {
           console.log("expContracts", contract.number_contract);
-          expContracts.push(contract);
+          f++;
           return contract;
-        } else {
-          return payment;
         }
       });
+      if (f > 0) {
+        expContracts.push(contract);
+      }
       return contract;
     });
     let rows_contracts = await pool.query(
