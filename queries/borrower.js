@@ -129,39 +129,6 @@ const findClient = async (request, response) => {
   }
 };
 
-// send e-mail to borrowers
-// const sentMail = async (request, response) => {
-//   console.log("Рассылка электронных писем");
-//   try {
-//     let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
-//     let transporter = nodemailer.createTransport({
-//       host: "smtp.mail.ru",
-//       port: 465,
-//       secure: true,
-//       auth: {
-//         user: emailAccount.user,
-//         pass: emailAccount.pass,
-//       },
-//     });
-//     console.log(transporter);
-
-//     let mailOptions = {
-//       from: `"SkyBank", <${emailAccount.user}>`,
-//       to: "abramova.polina.2001@gmail.com, you.awecome@gmail.com",
-//       subject: "Сообщение от SkyBank",
-//       text: "Сообщение от SkyBank.",
-//       html:
-//         "Добрый день, <i>Алиса Андреевна</i>!<br>Приглашаем Вас взять кредит в нашем банке на оплату обучения в Университете ИТМО. Будет рады видеть Вас в кругу наших заемщиков. <br><br> С уважением, SkyBank.",
-//     };
-//     let result = await transporter.sendMail(mailOptions);
-
-//     console.log("Result: ", result);
-//     response.status(200).send({ message: "Отправлено письмо", result: result, status: true });
-//   } catch (error) {
-//     response.status(500).send({ message: "Something went wrong", status: false });
-//   }
-// };
-
 const sentMail = async (request, response) => {
   console.log("Рассылка электронных писем");
   let current_date = new Date();
@@ -285,7 +252,6 @@ const sendMail_func = async (text) => {
     html: `${text}`,
   };
   let result = await transporter.sendMail(mailOptions);
-  // console.log("Result: ", result);
 };
 
 module.exports = { getAllClients, createClient, updateClient, deleteClient, findClient, sentMail };
