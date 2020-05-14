@@ -198,7 +198,7 @@ const countDebts = async (request, response) => {
           `when id_contract=${contract.id_contract} then ${contract.flag_payment}`
         );
         sendMail_status(
-          `Добрый день, ${contract.surname} ${contract.name}! Ваш кредит по контракту <i>№${contract.number_contract}</i> успешно выплачен. Надеемся на дальнейшее сотрудничество с Вами.<br><br>С уважением, SkyBank.`
+          `Доброго времени суток, ${contract.surname} ${contract.name}! Ваш кредит по контракту <i>№${contract.number_contract}</i> успешно выплачен. Надеемся на дальнейшее сотрудничество с Вами.<br><br>С уважением, SkyBank.`
         );
       }
       return { ...contract, payments: pays };

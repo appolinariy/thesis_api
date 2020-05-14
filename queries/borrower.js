@@ -130,36 +130,162 @@ const findClient = async (request, response) => {
 };
 
 // send e-mail to borrowers
+// const sentMail = async (request, response) => {
+//   console.log("Рассылка электронных писем");
+//   try {
+//     let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
+//     let transporter = nodemailer.createTransport({
+//       host: "smtp.mail.ru",
+//       port: 465,
+//       secure: true,
+//       auth: {
+//         user: emailAccount.user,
+//         pass: emailAccount.pass,
+//       },
+//     });
+//     console.log(transporter);
+
+//     let mailOptions = {
+//       from: `"SkyBank", <${emailAccount.user}>`,
+//       to: "abramova.polina.2001@gmail.com, you.awecome@gmail.com",
+//       subject: "Сообщение от SkyBank",
+//       text: "Сообщение от SkyBank.",
+//       html:
+//         "Добрый день, <i>Алиса Андреевна</i>!<br>Приглашаем Вас взять кредит в нашем банке на оплату обучения в Университете ИТМО. Будет рады видеть Вас в кругу наших заемщиков. <br><br> С уважением, SkyBank.",
+//     };
+//     let result = await transporter.sendMail(mailOptions);
+
+//     console.log("Result: ", result);
+//     response.status(200).send({ message: "Отправлено письмо", result: result, status: true });
+//   } catch (error) {
+//     response.status(500).send({ message: "Something went wrong", status: false });
+//   }
+// };
+
 const sentMail = async (request, response) => {
   console.log("Рассылка электронных писем");
+  let current_date = new Date();
   try {
-    let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
-    let transporter = nodemailer.createTransport({
-      host: "smtp.mail.ru",
-      port: 465,
-      secure: true,
-      auth: {
-        user: emailAccount.user,
-        pass: emailAccount.pass,
-      },
+    let rows_contracts_active = await pool.query(
+      `select contract.*, client.surname, client.name from contract, client where contract.id_client=client.id_client and contract.flag_payment=false order by id_contract;`
+    );
+    let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
+      let rows_payments = await pool.query(
+        `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${contract.number_contract}') order by plan_date_pay;`
+      );
+      let results_payments = rows_payments.rows.map((payment) => {
+        let plan_amount_pay = parseFloat(payment.plan_amount_pay);
+        let fact_amount_pay = parseFloat(payment.fact_amount_pay);
+        let debt_penya = parseFloat(payment.debt_penya);
+        let fact_amount_penya = parseFloat(payment.fact_amount_penya);
+        let debt_month_pay = parseFloat(payment.debt_month_pay);
+        let debt_month_penya = parseFloat(payment.debt_month_penya);
+        let plan_date_pay = new Date(payment.plan_date_pay);
+        let fact_date_pay = new Date(payment.fact_date_pay);
+
+        let timeDiff = Math.abs(plan_date_pay.getTime() - fact_date_pay.getTime());
+        let day = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        let options = {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          weekday: "long",
+        };
+        switch (day) {
+          case 7:
+            if (plan_amount_pay - fact_amount_pay == 0 && debt_penya - fact_amount_penya == 0) {
+              sendMail_func(
+                `Доброго времени суток, ${contract.surname} ${contract.name}! Вы успешно выплатили долг за текущий месяц по кредитному договору <i>№${contract.number_contract}</i>.<br><br>С уважением, SkyBank.`
+              );
+            } else {
+              sendMail_func(
+                `Доброго времени суток, ${contract.surname} ${
+                  contract.name
+                }! Через 7 дней истекает срок выплаты за текущий месяц по кредитному договору <i>№${
+                  contract.number_contract
+                }</i>. Вам необходимо внести выплату до <i>${plan_date_pay.toLocaleString(
+                  "ru",
+                  options
+                )}</i>.<br>Сумма к выплате по основному долгу: ${
+                  plan_amount_pay - fact_amount_pay
+                } руб.<br>Сумма к выплате по пени:  ${
+                  debt_penya - fact_amount_penya
+                } руб.<br><br>С уважением, SkyBank.`
+              );
+            }
+            break;
+          case 3:
+            if (plan_amount_pay - fact_amount_pay == 0 && debt_penya - fact_amount_penya == 0) {
+              sendMail_func(
+                `Доброго времени суток, ${contract.surname} ${contract.name}! Вы успешно выплатили долг за текущий месяц по кредитному договору <i>№${contract.number_contract}</i>.<br><br>С уважением, SkyBank.`
+              );
+            } else {
+              sendMail_func(
+                `Доброго времени суток, ${contract.surname} ${
+                  contract.name
+                }! Через 3 дня истекает срок выплаты за текущий месяц по кредитному договору <i>№${
+                  contract.number_contract
+                }</i>. Вам необходимо внести выплату до <i>${plan_date_pay.toLocaleString(
+                  "ru",
+                  options
+                )}</i>.<br>Сумма к выплате по основному долгу: ${
+                  plan_amount_pay - fact_amount_pay
+                } руб.<br>Сумма к выплате по пени:  ${
+                  debt_penya - fact_amount_penya
+                } руб.<br><br>С уважением, SkyBank.`
+              );
+            }
+            break;
+        }
+        if (
+          current_date > plan_date_pay &&
+          (plan_amount_pay - fact_amount_pay > 0 || debt_penya - fact_amount_penya > 0)
+        ) {
+          sendMail_func(
+            `Доброго времени суток, ${contract.surname} ${
+              contract.name
+            }! Вы просрочили выплату за текущий месяц по кредитному договору <i>№${
+              contract.number_contract
+            }</i>. Выплату необходимо было внести до <i>${plan_date_pay.toLocaleString(
+              "ru",
+              options
+            )}</i>.<br>Сумма к выплате по основному долгу: ${
+              plan_amount_pay - fact_amount_pay
+            } руб.<br>Сумма к выплате по пени:  ${
+              debt_penya - fact_amount_penya
+            } руб.<br><br>С уважением, SkyBank.`
+          );
+        }
+      });
     });
-    console.log(transporter);
 
-    let mailOptions = {
-      from: `"SkyBank", <${emailAccount.user}>`,
-      to: "abramova.polina.2001@gmail.com, you.awecome@gmail.com",
-      subject: "Сообщение от SkyBank",
-      text: "Сообщение от SkyBank.",
-      html:
-        "Добрый день, <i>Алиса Андреевна</i>!<br>Приглашаем Вас взять кредит в нашем банке на оплату обучения в Университете ИТМО. Будет рады видеть Вас в кругу наших заемщиков. <br><br> С уважением, SkyBank.",
-    };
-    let result = await transporter.sendMail(mailOptions);
-
-    console.log("Result: ", result);
-    response.status(200).send({ message: "Отправлено письмо", result: result, status: true });
+    response.status(200).send({ message: "Отправлено письмо", status: true });
   } catch (error) {
     response.status(500).send({ message: "Something went wrong", status: false });
   }
+};
+
+const sendMail_func = async (text) => {
+  let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
+  let transporter = nodemailer.createTransport({
+    host: "smtp.mail.ru",
+    port: 465,
+    secure: true,
+    auth: {
+      user: emailAccount.user,
+      pass: emailAccount.pass,
+    },
+  });
+
+  let mailOptions = {
+    from: `"SkyBank", <${emailAccount.user}>`,
+    to: "abramova.polina.2001@gmail.com",
+    subject: "Сообщение от SkyBank",
+    text: "Сообщение от SkyBank.",
+    html: `${text}`,
+  };
+  let result = await transporter.sendMail(mailOptions);
+  // console.log("Result: ", result);
 };
 
 module.exports = { getAllClients, createClient, updateClient, deleteClient, findClient, sentMail };
