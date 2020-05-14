@@ -147,10 +147,11 @@ const sentMail = async (request, response) => {
 
     let mailOptions = {
       from: `"SkyBank", <${emailAccount.user}>`,
-      to: "abramova.polina.2001@gmail.com",
-      subject: "Message from SkyBank",
-      text: "This message was sent from SkyBank.",
-      html: "This <i>message</i> was sent from <strong>SkyBank</strong> server.",
+      to: "abramova.polina.2001@gmail.com, you.awecome@gmail.com",
+      subject: "Сообщение от SkyBank",
+      text: "Сообщение от SkyBank.",
+      html:
+        "Добрый день, <i>Алиса Андреевна</i>!<br>Приглашаем Вас взять кредит в нашем банке на оплату обучения в Университете ИТМО. Будет рады видеть Вас в кругу наших заемщиков. <br><br> С уважением, SkyBank.",
     };
     let result = await transporter.sendMail(mailOptions);
 

@@ -90,7 +90,7 @@ const findBankUser = async (request, response) => {
   console.log("findBankUser", request.params, request.body);
   try {
     let results = await pool.query(
-      `select bank_user.*, filial.address from bank_user join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' order by bank_user.id_user ASC`
+      `select bank_user.*, filial.address from bank_user join filial on filial.id_filial = bank_user.id_filial where bank_user.surname like '%${surname}%' or bank_user.name like '%${surname}%' or bank_user.father_name like '%${surname}%' order by bank_user.id_user ASC`
     );
     let filials = await pool.query(`select address, id_filial from filial`);
     response.status(200).send({ data: results.rows, status: true, filials: filials.rows });
