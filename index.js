@@ -31,18 +31,20 @@ app.post("/auth", queries.authorization);
 //Filial
 app.get("/filials", queries.getFilials);
 
-//Client
+//Borrower
 app.get("/allclients", queries.getAllClients);
 app.post("/allclients", queries.createClient);
 app.put("/allclients/:id_client", queries.updateClient);
 app.delete("/allclients/:id_client", queries.deleteClient);
 app.get("/findclients/:surname", queries.findClient);
+app.post("/sentMail", queries.sentMail);
 
 // Contract
 app.get("/allcontracts", queries.getContracts);
 app.post("/allcontracts", queries.createContract);
 app.get("/findcontract/:number_contract", queries.findContract);
 app.get("/filtercontract/fromdate/:from_date/todate/:to_date", queries.filterContract);
+app.get("/filtergraphs", queries.filterGraphs);
 
 // Payment
 app.get("/allpayments/:number_contract", queries.getPaymentSchedule);
@@ -51,10 +53,8 @@ app.put("/allpayments/penya/:number_contract", queries.addPaymentPenya);
 app.put("/allpayments", queries.countDebts);
 
 //Adminka
-app.get("/bankuser/:id_user", queries.getBankUserById);
 app.get("/allbankusers", queries.getAllBankUser);
 app.post("/allbankusers", queries.createBankUser);
-app.delete("/allbankusers/:id_user", queries.deleteBankUser);
 app.put("/allbankusers/:id_user", queries.updateBankUser);
 app.get("/findbankuser/:surname", queries.findBankUser);
 

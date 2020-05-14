@@ -68,7 +68,7 @@ const findContract = async (request, response) => {
   console.log("findContract", request.params, request.body);
   try {
     let results = await pool.query(
-      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%'order by id_contract ASC;`
+      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%' or surname like '%${number_contract}%' order by id_contract ASC;`
     );
     response.status(200).send({ data: results.rows, status: true });
   } catch (err) {
@@ -92,4 +92,64 @@ const filterContract = async (request, response) => {
   }
 };
 
-module.exports = { getContracts, createContract, findContract, filterContract };
+//filtration of contracts by delay - фильтрация контрактов по просрочке
+const filterGraphs = async (request, response) => {
+  console.log("Фильтрация контрактов по просрочке");
+  let d = new Date();
+  d.setDate(d.getDate());
+  let current_date = new Date(d);
+  try {
+    let expContracts = [];
+
+    let rows_contracts_active = await pool.query(
+      `select contract.*, surname, name, father_name from contract, client where flag_payment=false and client.id_client=contract.id_client order by id_contract;`
+    );
+    let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
+      let rows_payments = await pool.query(
+        `select * from graphic_payment where id_contract=(select id_contract from contract where number_contract='${contract.number_contract}') order by plan_date_pay;`
+      );
+      let f = 0;
+      rows_payments.rows.forEach((payment) => {
+        const plan_date_pay = new Date(payment.plan_date_pay);
+        const fact_date_pay = new Date(payment.fact_date_pay);
+        if (
+          current_date > plan_date_pay &&
+          (fact_date_pay > plan_date_pay || fact_date_pay <= new Date(2000, 1, 1))
+        ) {
+          console.log("expContracts", contract.number_contract);
+          f++;
+          return contract;
+        }
+      });
+      if (f > 0) {
+        expContracts.push(contract);
+      }
+      return contract;
+    });
+    let rows_contracts = await pool.query(
+      `select contract.*, surname, name, father_name from contract, client where client.id_client=contract.id_client order by id_contract;`
+    );
+    Promise.all(results_contracts).then((res) => {
+      let okContracts = rows_contracts.rows.filter((contract) => {
+        let flag = true;
+        expContracts.forEach((expContract) => {
+          if (contract.number_contract == expContract.number_contract) {
+            flag = false;
+          }
+        });
+        return flag;
+      });
+      response.status(200).send({
+        expContracts: expContracts,
+        okContracts: okContracts,
+        rows_contracts: rows_contracts.rows,
+        status: true,
+      });
+    });
+  } catch (err) {
+    response.status(500).send({ message: "Something went wrong", status: false });
+    console.log(err);
+  }
+};
+
+module.exports = { getContracts, createContract, findContract, filterContract, filterGraphs };

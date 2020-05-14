@@ -1,3 +1,4 @@
+const nodemailer = require("nodemailer");
 const db = require("../db");
 
 const pool = db.pool;
@@ -17,21 +18,6 @@ const getPaymentSchedule = async (request, response) => {
     console.log(err);
   }
 };
-
-//search the contract / fio
-// const findContractFio = async (request, response) => {
-//   const { number_contract } = request.params;
-//   console.log("findContractFio", request.params, request.body);
-//   try {
-//     let results = await pool.query(
-//       `select id_contract, number_contract, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%'order by id_contract ASC;`
-//     );
-//     response.status(200).send({ data: results.rows, status: true });
-//   } catch (err) {
-//     response.status(500).send({ message: "Something went wrong", status: false });
-//     console.log(err);
-//   }
-// };
 
 //put a new debt payment
 const addPaymentDebt = async (request, response) => {
@@ -151,7 +137,7 @@ const countDebts = async (request, response) => {
   console.log("Рассчет остатка по задолженностям");
   let d = new Date();
   d.setDate(d.getDate() - 1);
-  let current_date = new Date(d).toLocaleDateString().split("/").join(".");
+  let current_date = new Date(d);
   try {
     let arr_debt_month_pay = [],
       arr_debt_penya = [],
@@ -159,7 +145,7 @@ const countDebts = async (request, response) => {
       arr_flag_payment = [];
 
     let rows_contracts_active = await pool.query(
-      `select * from contract where flag_payment=false order by id_contract;`
+      `select contract.*, client.surname, client.name from contract, client where contract.id_client=client.id_client and contract.flag_payment=false order by id_contract;`
     );
     let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
       let rows_payments = await pool.query(
@@ -176,11 +162,8 @@ const countDebts = async (request, response) => {
         const fact_amount_penya = parseFloat(payment.fact_amount_penya);
         let debt_month_pay = parseFloat(payment.debt_month_pay);
         let debt_month_penya = parseFloat(payment.debt_month_penya);
-        const plan_date_pay = new Date(payment.plan_date_pay)
-          .toLocaleDateString()
-          .split("/")
-          .join(".");
-        if (new Date(plan_date_pay) < new Date(current_date)) {
+        const plan_date_pay = new Date(payment.plan_date_pay);
+        if (plan_date_pay < current_date) {
           debt_month_pay = plan_amount_pay - fact_amount_pay;
           debt_penya = debt_penya + 0.01 * debt_month_pay;
           debt_month_penya = debt_penya - fact_amount_penya;
@@ -214,6 +197,9 @@ const countDebts = async (request, response) => {
         arr_flag_payment.push(
           `when id_contract=${contract.id_contract} then ${contract.flag_payment}`
         );
+        sendMail_status(
+          `Доброго времени суток, ${contract.surname} ${contract.name}! Ваш кредит по контракту <i>№${contract.number_contract}</i> успешно выплачен. Надеемся на дальнейшее сотрудничество с Вами.<br><br>С уважением, SkyBank.`
+        );
       }
       return { ...contract, payments: pays };
     });
@@ -245,6 +231,30 @@ const countDebts = async (request, response) => {
     console.log(err);
     response.status(500).send({ message: "OOps", status: false });
   }
+};
+
+const sendMail_status = async (text) => {
+  let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
+  let transporter = nodemailer.createTransport({
+    host: "smtp.mail.ru",
+    port: 465,
+    secure: true,
+    auth: {
+      user: emailAccount.user,
+      pass: emailAccount.pass,
+    },
+  });
+  console.log(transporter);
+
+  let mailOptions = {
+    from: `"SkyBank", <${emailAccount.user}>`,
+    to: "abramova.polina.2001@gmail.com",
+    subject: "Сообщение от SkyBank",
+    text: "Сообщение от SkyBank.",
+    html: `${text}`,
+  };
+  let result = await transporter.sendMail(mailOptions);
+  console.log("Result: ", result);
 };
 
 module.exports = { getPaymentSchedule, addPaymentDebt, addPaymentPenya, countDebts };
