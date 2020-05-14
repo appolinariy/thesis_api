@@ -1,3 +1,4 @@
+const nodemailer = require("nodemailer");
 const db = require("../db");
 
 const pool = db.pool;
@@ -144,7 +145,7 @@ const countDebts = async (request, response) => {
       arr_flag_payment = [];
 
     let rows_contracts_active = await pool.query(
-      `select * from contract where flag_payment=false order by id_contract;`
+      `select contract.*, client.surname, client.name from contract, client where contract.id_client=client.id_client and contract.flag_payment=false order by id_contract;`
     );
     let results_contracts = await rows_contracts_active.rows.map(async (contract) => {
       let rows_payments = await pool.query(
@@ -196,6 +197,9 @@ const countDebts = async (request, response) => {
         arr_flag_payment.push(
           `when id_contract=${contract.id_contract} then ${contract.flag_payment}`
         );
+        sendMail_status(
+          `Добрый день, ${contract.surname} ${contract.name}! Ваш кредит по контракту <i>№${contract.number_contract}</i> успешно выплачен. Надеемся на дальнейшее сотрудничество с Вами.<br><br>С уважением, SkyBank.`
+        );
       }
       return { ...contract, payments: pays };
     });
@@ -227,6 +231,30 @@ const countDebts = async (request, response) => {
     console.log(err);
     response.status(500).send({ message: "OOps", status: false });
   }
+};
+
+const sendMail_status = async (text) => {
+  let emailAccount = { user: process.env.MAIL_LOGIN, pass: process.env.MAIL_PASS };
+  let transporter = nodemailer.createTransport({
+    host: "smtp.mail.ru",
+    port: 465,
+    secure: true,
+    auth: {
+      user: emailAccount.user,
+      pass: emailAccount.pass,
+    },
+  });
+  console.log(transporter);
+
+  let mailOptions = {
+    from: `"SkyBank", <${emailAccount.user}>`,
+    to: "abramova.polina.2001@gmail.com",
+    subject: "Сообщение от SkyBank",
+    text: "Сообщение от SkyBank.",
+    html: `${text}`,
+  };
+  let result = await transporter.sendMail(mailOptions);
+  console.log("Result: ", result);
 };
 
 module.exports = { getPaymentSchedule, addPaymentDebt, addPaymentPenya, countDebts };

@@ -156,7 +156,6 @@ const sentMail = async (request, response) => {
     let result = await transporter.sendMail(mailOptions);
 
     console.log("Result: ", result);
-    console.log("Preview URL: ", nodemailer.getTestMessageUrl(result));
     response.status(200).send({ message: "Отправлено письмо", result: result, status: true });
   } catch (error) {
     response.status(500).send({ message: "Something went wrong", status: false });
