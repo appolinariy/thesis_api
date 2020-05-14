@@ -121,7 +121,7 @@ const findClient = async (request, response) => {
   console.log("findClient", request.params, request.body);
   try {
     let results = await pool.query(
-      `select client.* from client where client.surname like '%${surname}%' order by client.id_client ASC`
+      `select client.* from client where client.surname like '%${surname}%' or client.name like '%${surname}%' or client.father_name like '%${surname}%' order by client.id_client ASC`
     );
     response.status(200).send({ data: results.rows, status: true });
   } catch (err) {

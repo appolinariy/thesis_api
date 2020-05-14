@@ -68,7 +68,7 @@ const findContract = async (request, response) => {
   console.log("findContract", request.params, request.body);
   try {
     let results = await pool.query(
-      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%'order by id_contract ASC;`
+      `select contract.*, client.surname, client.name, client.father_name from contract join client on contract.id_client=client.id_client where number_contract like '%${number_contract}%' or surname like '%${number_contract}%' order by id_contract ASC;`
     );
     response.status(200).send({ data: results.rows, status: true });
   } catch (err) {
